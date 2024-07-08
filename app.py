@@ -42,6 +42,8 @@ async def main():
 
         prompt = f"{context} \n {user_query}"
 
+        print({"prompt": prompt})
+
         response = LLM.invoke(input=prompt)
 
         print(response)

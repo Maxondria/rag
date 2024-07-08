@@ -1,3 +1,4 @@
+from asyncio import TaskGroup
 from typing import Any, List
 from langchain_community.embeddings.ollama import OllamaEmbeddings
 
@@ -41,9 +42,12 @@ class Embeddings:
 
     async def embed_documents(self, documents: List[List[str]]) -> List[Any]:
         embeddings = []
-        for doc in documents:
-            embeddings.append(await self.embeddings.aembed_documents(doc))
-        return embeddings
+        async with TaskGroup() as taskgroup:
+            for doc in documents:
+                task = taskgroup.create_task(
+                    self.embeddings.aembed_documents(doc))
+                embeddings.append(task)
+        return [task.result() for task in embeddings]
 
     async def _embed_query(self, query: str) -> List[float]:
         return await self.embeddings.aembed_query(query)
